@@ -72,7 +72,9 @@ if printf '%s' "$raw" | grep -qE '"(five_hour|seven_day)"'; then
   out="$(emit "$five" "$seven" "${fr:-}" "${sr:-}" "$en" "${used:-}" "${lim:-}" "${cur:-}" oauth "$now")"
 elif [ -f "$LEGACY_STATE" ]; then
   ls="$(cat "$LEGACY_STATE")"
-  out="$(emit "$(num "$(jget five_hour "$ls")")" "$(num "$(jget seven_day "$ls")")" "" "" true "" "" "" statusline "$(num "$(jget at "$ls")")")"
+  # Statuslinjen skriver reset-tid som epoch når Claude Code oppgir den; tom ellers.
+  lfr="$(jget five_resets "$ls" | tr -cd '0-9')"; lsr="$(jget seven_resets "$ls" | tr -cd '0-9')"
+  out="$(emit "$(num "$(jget five_hour "$ls")")" "$(num "$(jget seven_day "$ls")")" "$lfr" "$lsr" true "" "" "" statusline "$(num "$(jget at "$ls")")")"
 fi
 
 [ -z "$out" ] && exit 1
