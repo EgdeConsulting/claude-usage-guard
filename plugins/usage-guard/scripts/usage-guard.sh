@@ -5,7 +5,7 @@
 # prompt (UserPromptSubmit):
 #   credits øker under grensen : kort linje med beløp per prompt
 #   WARN..99 %                 : systemMessage-advarsel én gang per grensevindu, prompten går gjennom
-#   >= 100 % + credits         : prompten avvises til brukeren svarer med !overage-ok
+#   >= 100 % + credits         : prompten avvises til brukeren skriver overage-ok
 #                                (gjelder resten av økten), deretter påminnelse per prompt
 # tool (PreToolUse):
 #   >= 100 % + credits uten bekreftelse: verktøykallet nektes med forklaring,
@@ -19,8 +19,11 @@ MODE="${1:-prompt}"
 WARN="${USAGE_GUARD_WARN:-80}"
 LIMIT="${USAGE_GUARD_LIMIT:-100}"
 STALE="${USAGE_GUARD_STALE:-1800}"
+WINDOW_SLACK="${USAGE_GUARD_WINDOW_SLACK:-900}"   # sekunder en reset kan flytte seg innen samme vindu
 STATE_DIR="${USAGE_GUARD_STATE_DIR:-$HOME/.claude/state/usage-guard}"
-ACK_WORD="!overage-ok"
+# Uten «!» i kravet: en prompt som starter med ! kjøres som shell i Claude Code.
+# «!overage-ok» midt i teksten matcher fortsatt.
+ACK_WORD="overage-ok"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------- input ----------
@@ -114,12 +117,27 @@ fi
 # ---------- 80-99 %: advarsel ----------
 if [ "$worst" -lt "$LIMIT" ]; then
   [ "$MODE" = "prompt" ] || exit 0
-  # Én advarsel per grensevindu, på tvers av økter: nøkkelen er vindu + reset-minutt.
-  reset_min="$(to_epoch "$resets")"; [ -n "$reset_min" ] && reset_min=$(( reset_min / 60 ))
-  warned_file="$STATE_DIR/warned-${window}-${reset_min:-ukjent}"
-  [ -f "$warned_file" ] && exit 0
-  rm -f "$STATE_DIR"/warned-* 2>/dev/null || true
-  : > "$warned_file" 2>/dev/null || true
+  # Én advarsel per grensevindu, på tvers av økter. Markøren per vindu holder
+  # vinduets reset-epoch. Reset-tiden fra API-et jitter med sekunder, og
+  # statuslinje-fallbacken mangler den ofte, så bare en reset som har flyttet seg
+  # mer enn WINDOW_SLACK fremover regnes som nytt vindu.
+  reset_epoch="$(to_epoch "$resets")"
+  if [ -z "$reset_epoch" ]; then
+    # Ukjent reset: anta at vinduet startet nå, så en senere kjent reset faller innenfor.
+    if [ "$window" = "ukesgrensen" ]; then reset_epoch=$(( now + 604800 )); else reset_epoch=$(( now + 18000 )); fi
+    unknown=1
+  else
+    unknown=0
+  fi
+  warned_file="$STATE_DIR/warned-${window}"
+  prev="$(tr -cd '0-9' 2>/dev/null < "$warned_file")"
+  if [ -n "$prev" ]; then
+    # Ukjent reset: samme vindu så lenge det lagrede vinduet ikke er over.
+    [ "$unknown" = 1 ] && [ "$now" -lt $(( prev + WINDOW_SLACK )) ] && exit 0
+    [ "$reset_epoch" -le $(( prev + WINDOW_SLACK )) ] && exit 0
+  fi
+  rm -f "$STATE_DIR/warned-${window}-"* 2>/dev/null || true   # markører fra 0.1.5
+  printf '%s' "$reset_epoch" > "$warned_file" 2>/dev/null || true
   sysmsg "⚠️ Usage guard: ${worst}% av ${window} brukt. ${status_txt}. Ved 100 % stoppes økten og du må velge om du vil fortsette på usage credits."
   exit 0
 fi

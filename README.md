@@ -11,7 +11,7 @@ Claude Code-plugin som gjør overgangen til usage credits (merforbruk utenfor ab
 | under 80 % | stille | stille |
 | 80 til 99 % | gul advarsel per prompt | stille |
 | 100 % og credits på | prompten avvises med forklaring og valg | verktøykall nektes med samme forklaring |
-| etter `!overage-ok` | kort påminnelse per prompt | slipper gjennom |
+| etter `overage-ok` | kort påminnelse per prompt | slipper gjennom |
 
 - Bekreftelsen gjelder resten av økten (per `session_id`). Ny økt krever nytt valg.
 - Slash-kommandoer går alltid gjennom.
