@@ -49,6 +49,23 @@ now="$(date +%s)"
 
 worst="$five"; window="5-timersgrensen"; Window="5-timersgrensen"; resets="$five_resets"
 if [ "$seven" -gt "$five" ]; then worst="$seven"; window="ukesgrensen"; Window="Ukesgrensen"; resets="$seven_resets"; fi
+
+# JSON-escaping uten jq: backslash, anførselstegn, linjeskift.
+jstr() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'NR>1{printf "\\n"}{printf "%s",$0}'; }
+sysmsg() { printf '{"systemMessage":"%s"}\n' "$(jstr "$1")"; }
+
+# Credits kan forbrukes uten at noen grense er nådd (f.eks. modeller som
+# faktureres som usage credits). Si fra når beløpet øker mellom to prompter.
+if [ "$MODE" = "prompt" ] && [ -n "$extra_used" ]; then
+  last_file="$STATE_DIR/last-used-$session"
+  last="$(cat "$last_file" 2>/dev/null || true)"
+  printf '%s' "$extra_used" > "$last_file"
+  if [ -n "$last" ] && [ "$worst" -lt "$LIMIT" ]; then
+    delta="$(awk -v a="$extra_used" -v b="$last" 'BEGIN { d = a - b; if (d > 0.004) printf "%.2f", d }')"
+    [ -n "$delta" ] && sysmsg "💳 Usage credits i bruk: +${delta} ${currency} siden forrige prompt, ${extra_used} ${currency} denne måneden. Dette faktureres utenfor abonnementet selv om grensene ikke er nådd (5t ${five}% / 7d ${seven}%)."
+  fi
+fi
+
 [ "$worst" -lt "$WARN" ] && exit 0
 
 fmt_reset() {
@@ -69,10 +86,6 @@ if [ -n "$extra_used" ]; then
   if [ -n "$extra_limit" ]; then credits_txt="usage credits (brukt ${extra_used} av ${extra_limit} ${currency} denne måneden)"
   else credits_txt="usage credits (brukt ${extra_used} ${currency} denne måneden)"; fi
 fi
-
-# JSON-escaping uten jq: backslash, anførselstegn, linjeskift.
-jstr() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'NR>1{printf "\\n"}{printf "%s",$0}'; }
-sysmsg() { printf '{"systemMessage":"%s"}\n' "$(jstr "$1")"; }
 
 if [ "$worst" -lt "$LIMIT" ]; then
   [ "$MODE" = "prompt" ] && sysmsg "⚠️ Usage guard: ${worst}% av ${window} brukt (5t ${five}% / 7d ${seven}%). Ved 100 % stoppes økten og du må velge om du vil fortsette på usage credits."

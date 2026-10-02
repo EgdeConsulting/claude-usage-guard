@@ -16,6 +16,9 @@ check(){ # name mode fixture prompt expect_rc expect_substr
   fi
 }
 check "lavt forbruk: stille"             prompt low            "hei"             0 ""
+check "credits øker under grensen: første"  prompt low_used_a "hei"           0 ""
+check "credits øker under grensen: varsel"  prompt low_used_b "hei"           0 "💳 Usage credits i bruk: +0.47 USD"
+check "credits uendret: stille"             prompt low_used_b "hei"           0 ""
 check "80-99: advarsel"                  prompt warn           "hei"             0 "⚠️ Usage guard: 85%"
 check "slash alltid gjennom"             prompt limit          "/usage"          0 ""
 check "grense nådd: blokker"             prompt limit          "hei"             2 "skriv  !overage-ok"
