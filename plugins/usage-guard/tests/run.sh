@@ -52,7 +52,7 @@ printf '%s' "$RESET" > "$USAGE_GUARD_STATE_DIR/warned-5-timersgrensen"
 rm -f "$LS"
 check "80-99: nytt vindu varsler igjen"  prompt warn_next_window "hei"         0 "⚠️ Usage guard: 85%"
 check "slash alltid gjennom"             prompt limit          "/usage"          0 ""
-check "grense nådd: blokker"             prompt limit          "hei"             2 "skriv  !overage-ok"
+check "grense nådd: blokker"             prompt limit          "hei"             2 "skriv  overage-ok  i prompten"
 check "7d-grense: blokker"               prompt limit7d        "hei"             2 "Ukesgrensen er nådd"
 check "tool ved grense: deny"            tool   limit          ""                0 '"permissionDecision":"deny"'
 check "beløp uten personlig grense"      prompt limit          "hei"             2 "brukt 40.82 USD denne måneden"
@@ -64,5 +64,8 @@ check "etter bekreftelse: påminnelse"    prompt limit          "hei"           
 check "tool etter bekreftelse: ok"       tool   limit          ""                0 ""
 rm -f "$USAGE_GUARD_STATE_DIR"/ack-*
 check "ny økt krever nytt valg"          prompt limit          "hei"             2 "⛔"
+# Uten «!»: en melding som starter med ! går til bash-modus i Claude Code.
+check "bekreft uten !"                   prompt limit          "overage-ok"      0 "✅ Bekreftet" s3
+check "bekreft med ! midt i teksten"     prompt limit          "ok !overage-ok"  0 "✅ Bekreftet" s4
 check "api-feil: fail open"              prompt broken         "hei"             0 ""
 printf '\n%d ok, %d feilet\n' "$pass" "$fail"; rm -rf "$T"; [ "$fail" -eq 0 ]

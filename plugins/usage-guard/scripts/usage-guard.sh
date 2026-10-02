@@ -5,7 +5,7 @@
 # prompt (UserPromptSubmit):
 #   credits øker under grensen : kort linje med beløp per prompt
 #   WARN..99 %                 : systemMessage-advarsel én gang per grensevindu, prompten går gjennom
-#   >= 100 % + credits         : prompten avvises til brukeren svarer med !overage-ok
+#   >= 100 % + credits         : prompten avvises til brukeren skriver overage-ok
 #                                (gjelder resten av økten), deretter påminnelse per prompt
 # tool (PreToolUse):
 #   >= 100 % + credits uten bekreftelse: verktøykallet nektes med forklaring,
@@ -21,7 +21,9 @@ LIMIT="${USAGE_GUARD_LIMIT:-100}"
 STALE="${USAGE_GUARD_STALE:-1800}"
 WINDOW_SLACK="${USAGE_GUARD_WINDOW_SLACK:-900}"   # sekunder en reset kan flytte seg innen samme vindu
 STATE_DIR="${USAGE_GUARD_STATE_DIR:-$HOME/.claude/state/usage-guard}"
-ACK_WORD="!overage-ok"
+# Uten «!» i kravet: en prompt som starter med ! kjøres som shell i Claude Code.
+# «!overage-ok» midt i teksten matcher fortsatt.
+ACK_WORD="overage-ok"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------- input ----------
