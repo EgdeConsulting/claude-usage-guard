@@ -20,7 +20,7 @@ check "80-99: advarsel"                  prompt warn           "hei"            
 check "slash alltid gjennom"             prompt limit          "/usage"          0 ""
 check "grense nådd: blokker"             prompt limit          "hei"             2 "skriv  !overage-ok"
 check "7d-grense: blokker"               prompt limit7d        "hei"             2 "Ukesgrensen er nådd"
-check "tool ved grense: deny"            tool   limit          ""                0 '"permissionDecision": "deny"'
+check "tool ved grense: deny"            tool   limit          ""                0 '"permissionDecision":"deny"'
 check "credits av: ingen blokkering"     prompt limit_disabled "hei"             0 ""
 check "bekreft med !overage-ok"          prompt limit          "fiks !overage-ok" 0 "✅ Bekreftet"
 check "etter bekreftelse: påminnelse"    prompt limit          "hei"             0 "💳 Du kjører på usage credits"

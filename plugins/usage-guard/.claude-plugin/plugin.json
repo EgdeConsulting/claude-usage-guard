@@ -1,6 +1,6 @@
 {
   "name": "usage-guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Varsler ved 80 % av claude.ai-grensen og krever et eksplisitt valg per økt før usage credits tas i bruk.",
   "author": { "name": "Egde" }
 }

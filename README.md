@@ -20,9 +20,21 @@ Data hentes fra `api.anthropic.com/api/oauth/usage` med brukerens egen Claude Co
 
 Terskler: `USAGE_GUARD_WARN` (80), `USAGE_GUARD_LIMIT` (100), `USAGE_GUARD_STALE` (1800 s).
 
+## Plattformer
+
+Scriptene er ren bash 3.2 med sed, grep, awk og curl. Ingen jq eller andre avhengigheter.
+
+| Plattform | Hooks kjører | Innlogging leses fra |
+|---|---|---|
+| macOS | innebygd bash | nøkkelringen (`Claude Code-credentials`) |
+| Linux / WSL | bash | `~/.claude/.credentials.json` |
+| Windows | Git Bash (kreves av Claude Code for Bash-verktøyet) | `~/.claude/.credentials.json` |
+
+På en Windows-maskin med bare PowerShell 7 og uten Git for Windows kjører ikke hookene, og pluginen gjør da ingenting (feiler åpent).
+
 ## Distribusjon til hele organisasjonen
 
-1. Repoet ligger på `github.com/EgdeConsulting/claude-usage-guard` (privat). Teamet `devs` har lesetilgang. Medlemmer må ha GitHub-innlogging i git lokalt (`gh auth login` eller SSH) for at Claude Code skal kunne klone det.
+1. Repoet ligger på `github.com/EgdeConsulting/claude-usage-guard` og er public, så kloning krever ingen GitHub-innlogging.
 2. Som Owner: claude.ai > Admin Settings > Claude Code > Managed settings. Lim inn innholdet i `managed-settings.example.json` med riktig `repo`.
 3. Ved neste oppstart registreres marketplacet og pluginen installeres hos alle. Medlemmer kan ikke slå den av.
 4. Verifiser hos ett medlem med `claude doctor` (linjen `Managed settings (remote)`) og `/plugin`.
