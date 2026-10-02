@@ -52,15 +52,23 @@ if [ "$seven" -gt "$five" ]; then worst="$seven"; window="ukesgrensen"; Window="
 [ "$worst" -lt "$WARN" ] && exit 0
 
 fmt_reset() {
-  case "$1" in
+  # ISO ("2026-10-02T11:10:00.239+00:00"), epoch eller tomt -> lokal tid, ellers UTC-tekst.
+  local v="$1" epoch=""
+  case "$v" in
     '') return ;;
-    *T*) printf '%s UTC' "$(printf '%s' "$1" | sed -E 's/T/ /; s/:[0-9]{2}(\.[0-9]+)?Z?$//')" ;;
-    *) date -r "$1" '+%d.%m kl. %H:%M' 2>/dev/null || date -d "@$1" '+%d.%m kl. %H:%M' 2>/dev/null || true ;;
+    *T*) local iso="${v%%.*}"; iso="${iso%%+*}"; iso="${iso%Z}"
+         epoch="$(date -j -u -f '%Y-%m-%dT%H:%M:%S' "$iso" '+%s' 2>/dev/null || date -u -d "${iso}Z" '+%s' 2>/dev/null || true)"
+         [ -z "$epoch" ] && { printf '%s UTC' "$(printf '%s' "$iso" | sed -E 's/T/ /; s/:[0-9]{2}$//')"; return; } ;;
+    *) epoch="$v" ;;
   esac
+  date -r "$epoch" '+%d.%m kl. %H:%M' 2>/dev/null || date -d "@$epoch" '+%d.%m kl. %H:%M' 2>/dev/null || true
 }
 reset_txt="$(fmt_reset "$resets")"
 credits_txt="usage credits"
-[ -n "$extra_used" ] && [ -n "$extra_limit" ] && credits_txt="usage credits (brukt ${extra_used} av ${extra_limit} ${currency} denne måneden)"
+if [ -n "$extra_used" ]; then
+  if [ -n "$extra_limit" ]; then credits_txt="usage credits (brukt ${extra_used} av ${extra_limit} ${currency} denne måneden)"
+  else credits_txt="usage credits (brukt ${extra_used} ${currency} denne måneden)"; fi
+fi
 
 # JSON-escaping uten jq: backslash, anførselstegn, linjeskift.
 jstr() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'NR>1{printf "\\n"}{printf "%s",$0}'; }

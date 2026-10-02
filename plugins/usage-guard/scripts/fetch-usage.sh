@@ -25,6 +25,8 @@ now="$(date +%s)"
 jget() { printf '%s' "$2" | tr -d '\n' | sed -nE 's/.*"'"$1"'" *: *"?([^",}]*)"?.*/\1/p' | head -1; }
 # Henter innholdet av et objekt "key": { ... } (ett nivå).
 jobj() { printf '%s' "$2" | tr -d '\n' | sed -nE 's/.*"'"$1"'" *: *(\{[^}]*\}).*/\1/p' | head -1; }
+# Minste enhet -> beløp med desimaler ("4082", 2 -> "40.82"). Tom ved null/ugyldig.
+money() { case "$1" in ''|null) printf '' ;; *) printf '%s' "$1" | awk -v dp="$2" '/^[0-9]+(\.[0-9]+)?$/ { printf "%.*f", dp, $1 / (10 ^ dp) }' ;; esac; }
 # BSD sed leser etiketter til linjeslutt, derfor separate -e for t-hoppet.
 num() { case "$1" in ''|null) printf '0' ;; *) printf '%s' "$1" | sed -E -e 's/^([0-9]+)(\.[0-9]+)?$/\1/' -e 't' -e 's/.*/0/' ;; esac; }
 
@@ -61,9 +63,11 @@ out=""
 if printf '%s' "$raw" | grep -qE '"(five_hour|seven_day)"'; then
   fh="$(jobj five_hour "$raw")"; sd="$(jobj seven_day "$raw")"; ex="$(jobj extra_usage "$raw")"
   five="$(num "$(jget utilization "$fh")")"; seven="$(num "$(jget utilization "$sd")")"
-  fr="$(jget resets_at "$fh" | tr -cd '0-9TZ:.-')"; sr="$(jget resets_at "$sd" | tr -cd '0-9TZ:.-')"
+  fr="$(jget resets_at "$fh" | tr -cd '0-9TZ:.+-')"; sr="$(jget resets_at "$sd" | tr -cd '0-9TZ:.+-')"
   en="$(jget is_enabled "$ex")"; [ "$en" = "true" ] || en=false
-  used="$(jget used_credits "$ex" | tr -cd '0-9.')"; lim="$(jget monthly_limit "$ex" | tr -cd '0-9.')"
+  # used_credits og monthly_limit kommer i minste enhet (øre/cent); decimal_places sier hvor mange.
+  dp="$(jget decimal_places "$ex" | tr -cd '0-9')"; [ -z "$dp" ] && dp=2
+  used="$(money "$(jget used_credits "$ex")" "$dp")"; lim="$(money "$(jget monthly_limit "$ex")" "$dp")"
   cur="$(jget currency "$ex" | tr -cd 'A-Za-z')"
   out="$(emit "$five" "$seven" "${fr:-}" "${sr:-}" "$en" "${used:-}" "${lim:-}" "${cur:-}" oauth "$now")"
 elif [ -f "$LEGACY_STATE" ]; then

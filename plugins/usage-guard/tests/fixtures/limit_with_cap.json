@@ -11,8 +11,8 @@
  },
  "extra_usage": {
   "is_enabled": true,
-  "monthly_limit": null,
-  "used_credits": 4082.0,
+  "monthly_limit": 80000,
+  "used_credits": 31250.0,
   "utilization": null,
   "currency": "USD",
   "decimal_places": 2,
