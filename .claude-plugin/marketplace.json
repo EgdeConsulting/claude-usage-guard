@@ -1,0 +1,12 @@
+{
+  "name": "egde-claude",
+  "description": "Interne Claude Code-plugins",
+  "owner": { "name": "Egde" },
+  "plugins": [
+    {
+      "name": "usage-guard",
+      "source": "./plugins/usage-guard",
+      "description": "Stopper og krever eksplisitt valg før en økt går over på usage credits"
+    }
+  ]
+}

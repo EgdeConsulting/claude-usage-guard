@@ -1,0 +1,12 @@
+{
+  "extraKnownMarketplaces": {
+    "egde-claude": {
+      "source": { "source": "github", "repo": "EgdeConsulting/claude-usage-guard" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "usage-guard@egde-claude": true
+  },
+  "autoContinueAtUsageLimit": false
+}

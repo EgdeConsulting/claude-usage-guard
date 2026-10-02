@@ -1,0 +1,20 @@
+{
+  "description": "Usage guard: varsel ved 80 %, stopp med eksplisitt valg når grensen er nådd og usage credits ville tatt over.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" prompt", "timeout": 10 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" tool", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}
