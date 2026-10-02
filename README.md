@@ -6,6 +6,8 @@ Claude Code-plugin som gjør overgangen til usage credits (merforbruk utenfor ab
 
 | Forbruk (5t eller 7d) | UserPromptSubmit | PreToolUse |
 |---|---|---|
+| ved oppstart (SessionStart) | status: prosent, reset-tidspunkt og credits | |
+| credits øker under grensen | kort linje med beløp per prompt | stille |
 | under 80 % | stille | stille |
 | 80 til 99 % | gul advarsel per prompt | stille |
 | 100 % og credits på | prompten avvises med forklaring og valg | verktøykall nektes med samme forklaring |

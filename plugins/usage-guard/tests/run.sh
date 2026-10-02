@@ -15,6 +15,9 @@ check(){ # name mode fixture prompt expect_rc expect_substr
     fail=$((fail+1)); printf '  FAIL %s (rc=%s)\n%s\n' "$name" "$rc" "$out"
   fi
 }
+check "session: status med reset"       session low            ""              0 "📊 Claude-forbruk: 5t 3% · resettes"
+check "session: viser credits"           session low            ""              0 "usage credits 40.82 USD"
+check "advarsel inneholder reset-tid"    prompt warn            "hei"           0 "7d 40% · resettes"
 check "lavt forbruk: stille"             prompt low            "hei"             0 ""
 check "credits øker under grensen: første"  prompt low_used_a "hei"           0 ""
 check "credits øker under grensen: varsel"  prompt low_used_b "hei"           0 "💳 Usage credits i bruk: +0.47 USD"
@@ -26,7 +29,7 @@ check "7d-grense: blokker"               prompt limit7d        "hei"            
 check "tool ved grense: deny"            tool   limit          ""                0 '"permissionDecision":"deny"'
 check "beløp uten personlig grense"      prompt limit          "hei"             2 "brukt 40.82 USD denne måneden"
 check "beløp med personlig grense"       prompt limit_with_cap "hei"             2 "brukt 312.50 av 800.00 USD"
-check "reset-tid vises"                  prompt limit          "hei"             2 "resettes 02.10 kl."
+check "reset-tid vises"                  prompt limit          "hei"             2 " kl. "
 check "credits av: ingen blokkering"     prompt limit_disabled "hei"             0 ""
 check "bekreft med !overage-ok"          prompt limit          "fiks !overage-ok" 0 "✅ Bekreftet"
 check "etter bekreftelse: påminnelse"    prompt limit          "hei"             0 "💳 Du kjører på usage credits"

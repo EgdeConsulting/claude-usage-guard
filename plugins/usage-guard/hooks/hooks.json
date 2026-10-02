@@ -1,10 +1,14 @@
 {
-  "description": "Usage guard: varsel ved 80 %, stopp med eksplisitt valg når grensen er nådd og usage credits ville tatt over.",
+  "description": "Usage guard: status ved oppstart, varsel ved 80 %, stopp med eksplisitt valg når grensen er nådd og usage credits ville tatt over.",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" prompt", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" prompt",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -12,7 +16,22 @@
       {
         "matcher": "*",
         "hooks": [
-          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" tool", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" tool",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/usage-guard.sh\" session",
+            "timeout": 10
+          }
         ]
       }
     ]
