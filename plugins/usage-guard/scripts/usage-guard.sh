@@ -4,7 +4,7 @@
 # session (SessionStart): viser forbruk, reset-tidspunkt og credits ved oppstart.
 # prompt (UserPromptSubmit):
 #   credits øker under grensen : kort linje med beløp per prompt
-#   WARN..99 %                 : systemMessage-advarsel, prompten går gjennom
+#   WARN..99 %                 : systemMessage-advarsel én gang per grensevindu, prompten går gjennom
 #   >= 100 % + credits         : prompten avvises til brukeren svarer med !overage-ok
 #                                (gjelder resten av økten), deretter påminnelse per prompt
 # tool (PreToolUse):
@@ -113,7 +113,14 @@ fi
 
 # ---------- 80-99 %: advarsel ----------
 if [ "$worst" -lt "$LIMIT" ]; then
-  [ "$MODE" = "prompt" ] && sysmsg "⚠️ Usage guard: ${worst}% av ${window} brukt. ${status_txt}. Ved 100 % stoppes økten og du må velge om du vil fortsette på usage credits."
+  [ "$MODE" = "prompt" ] || exit 0
+  # Én advarsel per grensevindu, på tvers av økter: nøkkelen er vindu + reset-minutt.
+  reset_min="$(to_epoch "$resets")"; [ -n "$reset_min" ] && reset_min=$(( reset_min / 60 ))
+  warned_file="$STATE_DIR/warned-${window}-${reset_min:-ukjent}"
+  [ -f "$warned_file" ] && exit 0
+  rm -f "$STATE_DIR"/warned-* 2>/dev/null || true
+  : > "$warned_file" 2>/dev/null || true
+  sysmsg "⚠️ Usage guard: ${worst}% av ${window} brukt. ${status_txt}. Ved 100 % stoppes økten og du må velge om du vil fortsette på usage credits."
   exit 0
 fi
 

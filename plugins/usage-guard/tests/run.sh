@@ -5,11 +5,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 G="$HERE/../scripts/usage-guard.sh"
 T="$(mktemp -d)"; export HOME="$T"; export USAGE_GUARD_STATE_DIR="$T/state"; export USAGE_GUARD_CACHE_TTL=0
 pass=0; fail=0
-check(){ # name mode fixture prompt expect_rc expect_substr
-  local name="$1" mode="$2" fx="$3" prompt="$4" erc="$5" esub="$6"
+check(){ # name mode fixture prompt expect_rc expect_substr [session]
+  local name="$1" mode="$2" fx="$3" prompt="$4" erc="$5" esub="$6" sid="${7:-s1}"
   local out rc
-  out="$(printf '{"session_id":"s1","prompt":"%s","tool_name":"Bash"}' "$prompt" | USAGE_GUARD_FIXTURE="$HERE/fixtures/$fx.json" bash "$G" "$mode" 2>&1)"; rc=$?
-  if [ "$rc" = "$erc" ] && { [ -z "$esub" ] && [ -z "$out" ] || printf '%s' "$out" | grep -qF -- "$esub"; }; then
+  out="$(printf '{"session_id":"%s","prompt":"%s","tool_name":"Bash"}' "$sid" "$prompt" | USAGE_GUARD_FIXTURE="$HERE/fixtures/$fx.json" bash "$G" "$mode" 2>&1)"; rc=$?
+  if [ "$rc" = "$erc" ] && { if [ -z "$esub" ]; then [ -z "$out" ]; else printf '%s' "$out" | grep -qF -- "$esub"; fi; }; then
     pass=$((pass+1)); printf '  ok   %s\n' "$name"
   else
     fail=$((fail+1)); printf '  FAIL %s (rc=%s)\n%s\n' "$name" "$rc" "$out"
@@ -22,7 +22,11 @@ check "lavt forbruk: stille"             prompt low            "hei"            
 check "credits øker under grensen: første"  prompt low_used_a "hei"           0 ""
 check "credits øker under grensen: varsel"  prompt low_used_b "hei"           0 "💳 Usage credits i bruk: +0.47 USD"
 check "credits uendret: stille"             prompt low_used_b "hei"           0 ""
+rm -f "$USAGE_GUARD_STATE_DIR"/warned-*
 check "80-99: advarsel"                  prompt warn           "hei"             0 "⚠️ Usage guard: 85%"
+check "80-99: kun én gang per vindu"     prompt warn           "hei"             0 ""
+check "80-99: ikke i ny økt heller"      prompt warn           "hei"             0 "" s2
+check "80-99: nytt vindu varsler igjen"  prompt warn_next_window "hei"         0 "⚠️ Usage guard: 85%"
 check "slash alltid gjennom"             prompt limit          "/usage"          0 ""
 check "grense nådd: blokker"             prompt limit          "hei"             2 "skriv  !overage-ok"
 check "7d-grense: blokker"               prompt limit7d        "hei"             2 "Ukesgrensen er nådd"
