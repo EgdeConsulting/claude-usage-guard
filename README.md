@@ -22,7 +22,7 @@ Terskler: `USAGE_GUARD_WARN` (80), `USAGE_GUARD_LIMIT` (100), `USAGE_GUARD_STALE
 
 ## Distribusjon til hele organisasjonen
 
-1. Push dette repoet til org-ens GitHub. Medlemmene trenger lesetilgang med sine vanlige git-credentials.
+1. Repoet ligger på `github.com/EgdeConsulting/claude-usage-guard` (privat). Teamet `devs` har lesetilgang. Medlemmer må ha GitHub-innlogging i git lokalt (`gh auth login` eller SSH) for at Claude Code skal kunne klone det.
 2. Som Owner: claude.ai > Admin Settings > Claude Code > Managed settings. Lim inn innholdet i `managed-settings.example.json` med riktig `repo`.
 3. Ved neste oppstart registreres marketplacet og pluginen installeres hos alle. Medlemmer kan ikke slå den av.
 4. Verifiser hos ett medlem med `claude doctor` (linjen `Managed settings (remote)`) og `/plugin`.
@@ -33,6 +33,6 @@ Alternativ uten GitHub-tilgang: distribuer `managed-settings.json` og plugin-map
 
 ```
 bash plugins/usage-guard/tests/run.sh
-claude plugin marketplace add ~/Documents/repos/claude-usage-guard
+claude plugin marketplace add EgdeConsulting/claude-usage-guard
 claude plugin install usage-guard@egde-claude
 ```
